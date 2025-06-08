@@ -10,7 +10,6 @@
         <result property="orderId" column="order_id"/>
         <result property="productId" column="product_id"/>
         <result property="quantity" column="quantity"/>
-        <result property="price" column="price"/>
         
         <!-- 关联商品信息 -->
         <association property="product" javaType="Product">
@@ -21,8 +20,6 @@
             <result property="stock" column="p_stock"/>
             <result property="sales" column="p_sales"/>
             <result property="status" column="p_status"/>
-            <result property="categoryId" column="p_category_id"/>
-            <result property="createTime" column="p_create_time"/>
         </association>
     </resultMap>
 
@@ -30,8 +27,7 @@
     <select id="findByOrderId" parameterType="int" resultMap="OrderItemResultMap">
         SELECT oi.*, 
                p.name as p_name, p.description as p_description, p.price as p_price,
-               p.stock as p_stock, p.sales as p_sales, p.status as p_status,
-               p.category_id as p_category_id, p.create_time as p_create_time
+               p.stock as p_stock, p.sales as p_sales, p.status as p_status
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.id
         WHERE oi.order_id = #{orderId}
@@ -40,16 +36,16 @@
 
     <!-- 添加订单明细 -->
     <insert id="insert" parameterType="OrderItem" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO order_items (order_id, product_id, quantity, price)
-        VALUES (#{orderId}, #{productId}, #{quantity}, #{price})
+        INSERT INTO order_items (order_id, product_id, quantity)
+        VALUES (#{orderId}, #{productId}, #{quantity})
     </insert>
 
     <!-- 批量添加订单明细 -->
     <insert id="batchInsert" parameterType="list">
-        INSERT INTO order_items (order_id, product_id, quantity, price)
+        INSERT INTO order_items (order_id, product_id, quantity)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price})
+            (#{item.orderId}, #{item.productId}, #{item.quantity})
         </foreach>
     </insert>
 

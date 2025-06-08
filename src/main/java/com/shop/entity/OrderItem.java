@@ -13,7 +13,8 @@ public class OrderItem {
     private int orderId;
     private int productId;
     private int quantity;
-    private BigDecimal price;
+    // 注释掉数据库中不存在的price字段
+    // private BigDecimal price;
 
     private Product product;
 
@@ -22,8 +23,18 @@ public class OrderItem {
         orderItem.orderId = orderId;
         orderItem.productId = productId;
         orderItem.quantity = quantity;
-        orderItem.price = price;
+        // orderItem.price = price; // 数据库中暂时没有price字段
         orderItem.product = product;
         return orderItem;
+    }
+    
+    // 添加一个方法来获取商品价格（从关联的Product对象中获取）
+    public BigDecimal getPrice() {
+        return product != null ? product.getPrice() : BigDecimal.ZERO;
+    }
+    
+    // 添加一个方法来计算总价
+    public BigDecimal getTotalPrice() {
+        return getPrice().multiply(BigDecimal.valueOf(quantity));
     }
 }
