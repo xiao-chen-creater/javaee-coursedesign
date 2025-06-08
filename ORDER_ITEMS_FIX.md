@@ -1,21 +1,33 @@
-# OrderItem表price字段缺失修复说明
+# OrderItem表字段缺失修复说明
 
 ## 问题描述
 
-在解决了products表的category_id字段问题后，用户在提交订单时遇到了新的错误：
+在解决了products表的category_id字段问题后，用户在提交订单时遇到了一系列新的错误：
 
+### 错误1：price字段缺失（已修复）
 ```
 订单创建异常： ### Error updating database. Cause: java.sql.SQLSyntaxErrorException: (conn=429) Unknown column 'price' in 'INSERT INTO' 
-### The error may exist in file [C:\Users\20100\Desktop\javaee\javaee-coursedesign\target\javaee-shop\WEB-INF\classes\mapper\OrderItemMapper.xml] 
+### The error may exist in file [OrderItemMapper.xml] 
 ### The error may involve com.shop.mapper.OrderItemMapper.batchInsert-Inline 
-### The error occurred while setting parameters 
 ### SQL: INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?) , (?, ?, ?, ?) 
 ### Cause: java.sql.SQLSyntaxErrorException: (conn=429) Unknown column 'price' in 'INSERT INTO'
 ```
 
+### 错误2：product_name字段缺失（已修复）
+```
+订单提交失败：订单创建异常： ### Error updating database. Cause: java.sql.SQLException: (conn=452) Field 'product_name' doesn't have a default value 
+### The error may exist in file [OrderItemMapper.xml] 
+### The error may involve com.shop.mapper.OrderItemMapper.batchInsert-Inline 
+### SQL: INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?) , (?, ?, ?) 
+### Cause: java.sql.SQLException: (conn=452) Field 'product_name' doesn't have a default value
+```
+
 ## 根本原因
 
-OrderItemMapper.xml和OrderItem实体类中包含了数据库表`order_items`中不存在的`price`字段。
+OrderItemMapper.xml和OrderItem实体类与数据库表`order_items`的结构不匹配：
+
+1. **price字段缺失**：代码期望有price字段存储商品单价，但数据库表中没有
+2. **product_name字段缺失**：数据库表中有product_name字段且没有默认值，但代码没有提供该字段的值
 
 ### 数据库表结构对比
 
@@ -26,7 +38,7 @@ CREATE TABLE order_items (
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL  -- 这个字段在实际数据库中不存在
+    price DECIMAL(10, 2) NOT NULL  -- 代码期望有这个字段
 );
 ```
 
@@ -36,7 +48,8 @@ CREATE TABLE order_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
-    quantity INT NOT NULL
+    quantity INT NOT NULL,
+    product_name VARCHAR(255) NOT NULL  -- 数据库有这个字段但代码没有提供值
     -- 缺少 price 字段
 );
 ```
@@ -56,10 +69,22 @@ public class OrderItem {
     private int orderId;
     private int productId;
     private int quantity;
+    private String productName;  // 添加商品名称字段
     // 注释掉数据库中不存在的price字段
     // private BigDecimal price;
 
     private Product product;
+
+    // 在forCreate方法中设置商品名称
+    public static OrderItem forCreate(int orderId, int productId, int quantity, BigDecimal price, Product product) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.orderId = orderId;
+        orderItem.productId = productId;
+        orderItem.quantity = quantity;
+        orderItem.productName = product != null ? product.getName() : ""; // 设置商品名称
+        orderItem.product = product;
+        return orderItem;
+    }
 
     // 添加方法从关联的Product对象获取价格
     public BigDecimal getPrice() {
@@ -77,18 +102,18 @@ public class OrderItem {
 **文件**: `src/main/resources/mapper/OrderItemMapper.xml`
 
 **主要修改**:
-- 移除resultMap中的price字段映射
-- 修改insert语句，移除price字段
-- 修改batchInsert语句，移除price字段
-- 修改关联查询，移除products表中不存在的字段引用
+- 添加resultMap中的product_name字段映射
+- 修改insert语句，添加product_name字段
+- 修改batchInsert语句，添加product_name字段
+- 移除对不存在的price字段的引用
 
 **修改前**:
 ```xml
 <insert id="batchInsert" parameterType="list">
-    INSERT INTO order_items (order_id, product_id, quantity, price)
+    INSERT INTO order_items (order_id, product_id, quantity)
     VALUES
     <foreach collection="list" item="item" separator=",">
-        (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price})
+        (#{item.orderId}, #{item.productId}, #{item.quantity})
     </foreach>
 </insert>
 ```
@@ -96,10 +121,10 @@ public class OrderItem {
 **修改后**:
 ```xml
 <insert id="batchInsert" parameterType="list">
-    INSERT INTO order_items (order_id, product_id, quantity)
+    INSERT INTO order_items (order_id, product_id, quantity, product_name)
     VALUES
     <foreach collection="list" item="item" separator=",">
-        (#{item.orderId}, #{item.productId}, #{item.quantity})
+        (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.productName})
     </foreach>
 </insert>
 ```

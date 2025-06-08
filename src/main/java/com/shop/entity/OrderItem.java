@@ -13,6 +13,7 @@ public class OrderItem {
     private int orderId;
     private int productId;
     private int quantity;
+    private String productName;  // 添加商品名称字段
     // 注释掉数据库中不存在的price字段
     // private BigDecimal price;
 
@@ -23,6 +24,7 @@ public class OrderItem {
         orderItem.orderId = orderId;
         orderItem.productId = productId;
         orderItem.quantity = quantity;
+        orderItem.productName = product != null ? product.getName() : ""; // 设置商品名称
         // orderItem.price = price; // 数据库中暂时没有price字段
         orderItem.product = product;
         return orderItem;
