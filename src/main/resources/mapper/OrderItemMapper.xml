@@ -10,6 +10,7 @@
         <result property="orderId" column="order_id"/>
         <result property="productId" column="product_id"/>
         <result property="quantity" column="quantity"/>
+        <result property="productName" column="product_name"/>
         
         <!-- 关联商品信息 -->
         <association property="product" javaType="Product">
@@ -36,16 +37,16 @@
 
     <!-- 添加订单明细 -->
     <insert id="insert" parameterType="OrderItem" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO order_items (order_id, product_id, quantity)
-        VALUES (#{orderId}, #{productId}, #{quantity})
+        INSERT INTO order_items (order_id, product_id, quantity, product_name)
+        VALUES (#{orderId}, #{productId}, #{quantity}, #{productName})
     </insert>
 
     <!-- 批量添加订单明细 -->
     <insert id="batchInsert" parameterType="list">
-        INSERT INTO order_items (order_id, product_id, quantity)
+        INSERT INTO order_items (order_id, product_id, quantity, product_name)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.orderId}, #{item.productId}, #{item.quantity})
+            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.productName})
         </foreach>
     </insert>
 
