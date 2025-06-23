@@ -26,6 +26,13 @@
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>我的订单</h5>
+          <form class="d-flex">
+            <div class="input-group input-group-sm">
+              <input id="startDate" class="form-control" type="date">
+              <span class="input-group-text"> - </span>
+              <input id="endDate" class="form-control" type="date">
+            </div>
+          </form>
           <div class="btn-group" role="group">
             <input type="radio" class="btn-check" name="orderStatus" id="all" value="" checked>
             <label class="btn btn-outline-primary" for="all">全部</label>
@@ -47,7 +54,9 @@
           <!-- 订单列表 -->
           <div id="orderList">
             <c:forEach var="order" items="${orders}">
-              <div class="card order-card mb-3" data-status="${order.status}">
+              <div class="card order-card mb-3"
+                   data-status="${order.status}"
+                   data-create-time="<fmt:formatDate value="${order.createTime}" pattern="yyyy-MM-dd HH:mm:ss"/>">
                 <div class="card-header">
                   <div class="row align-items-center">
                     <div class="col-md-3">
@@ -107,19 +116,44 @@
 
 <jsp:include page="common/dependency_js.jsp"/>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('input[name="orderStatus"]').forEach(function (radio) {
-            radio.addEventListener('change', function () {
-                const orderCards = document.querySelectorAll('.order-card');
+    document.addEventListener('DOMContentLoaded', () => {
+        let filterStatus = '';
+        let filterStart = undefined;
+        let filterEnd = undefined;
 
-                if (radio.value === '') {
-                    orderCards.forEach(card => card.style.display = 'block');
-                } else {
-                    const displayValue = (status) => (status === radio.value) ? 'block' : 'none';
-                    orderCards.forEach(card => card.style.display = displayValue(card.dataset.status));
-                }
+        document.querySelectorAll('input[name="orderStatus"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                filterStatus = radio.value;
+                updateOrders();
             });
         });
+        document.querySelector('#startDate').addEventListener('change', () => {
+            const startDate = document.querySelector('#startDate').value;
+            filterStart = startDate ? new Date(startDate) : undefined;
+            document.querySelector('#endDate').min = startDate;
+            updateOrders();
+        });
+        document.querySelector('#endDate').addEventListener('change', () => {
+            const endDate = document.querySelector('#endDate').value;
+            filterEnd = endDate ? new Date(endDate) : undefined;
+            document.querySelector('#startDate').max = endDate;
+            updateOrders();
+        });
+
+        function updateOrders() {
+            document.querySelectorAll('.order-card').forEach(card => {
+                const status = card.dataset.status;
+                const createTime = new Date(card.dataset.createTime);
+                const display =
+                    // 状态
+                    (filterStatus === '' || status === filterStatus) &&
+                    // 起始时间
+                    (!filterStart || createTime >= filterStart) &&
+                    // 结束时间
+                    (!filterEnd || createTime <= filterEnd);
+                card.style.display = display ? 'block' : 'none';
+            })
+        }
     });
 </script>
 </body>
