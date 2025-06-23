@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<div class="col-md-1 position-fixed top-10 mt-4" style="left: 5%">
+<div class="col-md-1 position-fixed top-10 mt-4" style="left: 5%; z-index: 10">
   <div class="card profile-card">
     <div class="card-header">
       <i class="fas fa-user-cog me-2"></i>个人中心
