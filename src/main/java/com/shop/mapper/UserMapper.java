@@ -16,6 +16,11 @@ public interface UserMapper {
     /**
      * 根据用户名和密码查询用户（登录）
      */
+    User findByUsername(@Param("username") String username);
+
+    /**
+     * 根据用户名和密码查询用户（登录）
+     */
     User findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
 
     /**

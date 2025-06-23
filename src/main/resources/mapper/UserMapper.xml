@@ -12,6 +12,10 @@
         SELECT * FROM users WHERE username = #{username} AND password = #{password}
     </select>
 
+    <select id="findByUsername" resultType="User">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
     <insert id="insert" parameterType="com.shop.entity.User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (username, password, email, phone, address, create_time)
         VALUES (#{username}, #{password}, #{email}, #{phone}, #{address}, #{createTime})

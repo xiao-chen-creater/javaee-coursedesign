@@ -17,7 +17,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductMapper productMapper;
 
     @Override
-    public Product findById(Integer id) {
+    public Product findById(int id) {
         return productMapper.findById(id);
     }
 

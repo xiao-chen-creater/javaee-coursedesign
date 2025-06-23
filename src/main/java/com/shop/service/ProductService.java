@@ -12,7 +12,7 @@ public interface ProductService {
     /**
      * 根据ID查询商品
      */
-    Product findById(Integer id);
+    Product findById(int id);
 
     /**
      * 搜索商品

@@ -29,8 +29,13 @@ public interface OrderService {
     /**
      * 创建订单（从购物车结算）
      */
-    Either<Order> createOrder(User user, List<Integer> productIds);
-    
+    Either<Order> createOrderFromCart(User user, List<Integer> productIds);
+
+    /**
+     * 创建订单（直接结算）
+     */
+    Either<Order> createOrderFromProduct(User user, int productId);
+
     /**
      * 更新订单状态
      */

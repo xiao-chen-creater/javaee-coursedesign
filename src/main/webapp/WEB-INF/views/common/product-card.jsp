@@ -11,27 +11,24 @@
     </a>
     <div class="card-body d-flex flex-column flex-column-reverse">
       <div class="mt-2 d-grid">
-        <c:choose>
-          <c:when test="${empty sessionScope.user}">
-            <button class="btn btn-outline-primary btn-sm"
-                    onclick="showMessage('请先登录', { type: 'warning', redirect: '${pageContext.request.contextPath}/user/login'})">
-              <i class="fas fa-shopping-cart"></i> 添加到购物车
-            </button>
-          </c:when>
-          <c:when test="${param.stock > 0}">
-            <button class="btn btn-primary btn-sm"
+        <c:if test="${param.stock > 0}">
+          <a class="btn btn-outline-primary btn-sm" href="${pageContext.request.contextPath}/order/create/${param.id}">
+            <i class="fas fa-cart-arrow-down"></i> 立即购买
+          </a>
+          <c:if test="${not empty sessionScope.user}">
+            <button class="btn btn-primary btn-sm mt-2"
                     onclick="addToCart(${param.id})
                         .then(msg => updateCartCount && updateCartCount(msg))
                         .catch(showError)">
               <i class="fas fa-shopping-cart"></i> 添加到购物车
             </button>
-          </c:when>
-          <c:otherwise>
-            <button class="btn btn-secondary btn-sm text-dark" disabled>
-              <i class="fas fa-times"></i> 暂时缺货
-            </button>
-          </c:otherwise>
-        </c:choose>
+          </c:if>
+        </c:if>
+        <c:if test="${param.stock <= 0}">
+          <button class="btn btn-secondary btn-sm text-dark" disabled>
+            <i class="fas fa-times"></i> 暂时缺货
+          </button>
+        </c:if>
       </div>
       <div class="d-flex justify-content-between align-items-center">
           <span class="h5 text-danger mb-0">

@@ -45,6 +45,9 @@
               <button id="login" type="submit" class="btn btn-primary">
                 <i class="fas fa-sign-in-alt"></i> 登录
               </button>
+              <button id="forget" type="button" class="btn btn-danger mt-2">
+                <i class="fas fa-sign-in-alt"></i> 忘记密码
+              </button>
             </div>
           </form>
         </div>
@@ -66,7 +69,26 @@
 
         const username = document.querySelector('#username').value.trim();
         const password = document.querySelector('#password').value;
-        login(username, password)
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+        login(username, password, redirect)
+            .then(redirect => showMessage('登录成功', {
+                type: 'success',
+                redirect: '${pageContext.request.contextPath}' + redirect
+            }))
+            .catch(showError)
+    });
+
+    document.querySelector('#forget').addEventListener('click', () => {
+        const form = document.querySelector('#loginForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated')
+            return
+        }
+
+        const username = document.querySelector('#username').value.trim();
+        const password = document.querySelector('#password').value;
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+        forgetPassword(username, password, redirect)
             .then(redirect => showMessage('登录成功', {
                 type: 'success',
                 redirect: '${pageContext.request.contextPath}' + redirect

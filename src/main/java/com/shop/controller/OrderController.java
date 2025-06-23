@@ -5,7 +5,6 @@ import com.shop.entity.Order;
 import com.shop.entity.User;
 import com.shop.service.CartService;
 import com.shop.service.OrderService;
-import com.shop.service.ProductService;
 import com.shop.util.Either;
 import com.shop.util.JsonResult;
 import com.shop.util.OrderStatusRequest;
@@ -20,7 +19,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/order")
@@ -29,9 +27,9 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
     @Autowired
-    private ProductService productService;
-    @Autowired
     private CartService cartService;
+
+    private final Random random = new Random(System.currentTimeMillis());
 
     /**
      * 我的订单页面
@@ -98,8 +96,7 @@ public class OrderController {
      */
     @ResponseBody
     @PostMapping("/create")
-    public JsonResult<Order> create(@RequestBody List<Integer> productIds,
-                                    HttpSession session) {
+    public JsonResult<Order> create(@RequestBody List<Integer> productIds, HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return JsonResult.error("请先登录");
@@ -115,22 +112,47 @@ public class OrderController {
         }
 
         // 创建订单
-        Either<Order> orderResult = orderService.createOrder(user, productIds);
+        Either<Order> orderResult = orderService.createOrderFromCart(user, productIds);
         if (!orderResult.isSuccess()) {
             return JsonResult.error(orderResult.error());
         }
 
+        return simulateOrderPayment(orderResult.result());
+    }
+
+    /**
+     * 直接创建订单，不删除购物车
+     */
+    @GetMapping("/create/{productId}")
+    public String createDirectly(@PathVariable("productId") int productId, Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/user/login?redirect=/order/create/" + productId;
+        }
+
+        // 创建订单
+        Either<Order> orderResult = orderService.createOrderFromProduct(user, productId);
+        if (!orderResult.isSuccess()) {
+            model.addAttribute("message", orderResult.error());
+            return "redirect:/error";
+        }
+
+        return "redirect:/order/detail/" + orderResult.result().getId();
+    }
+
+    /**
+     * 模拟支付
+     */
+    private JsonResult<Order> simulateOrderPayment(Order order) {
         // 模拟支付
         try {
-            Thread.sleep(1000 + new Random().nextInt(2000));
+            Thread.sleep(1000 + random.nextInt(2000));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        Random random = new Random();
         boolean paymentSuccess = random.nextInt(100) < 80;
 
         if (paymentSuccess) {
-            Order order = orderResult.result();
             if (orderService.updateStatus(order.getId(), Order.STATUS_PAID)) {
                 return JsonResult.success(order);
             } else {

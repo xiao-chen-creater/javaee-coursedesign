@@ -47,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Either<Order> createOrder(User user, List<Integer> productIds) {
+    public Either<Order> createOrderFromCart(User user, List<Integer> productIds) {
         if (productIds == null || productIds.isEmpty()) {
             return Either.error("空订单");
         }
@@ -106,6 +106,37 @@ public class OrderServiceImpl implements OrderService {
             cartService.removeFromCart(user.getId(), item.getProductId());
         }
 
+        return Either.of(order);
+    }
+
+    @Override
+    public Either<Order> createOrderFromProduct(User user, int productId) {
+        Product product = productService.findById(productId);
+        if (product == null) {
+            return Either.error("商品 %d 不存在", productId);
+        }
+
+        if (product.getStock() < 1) {
+            return Either.error("商品 %s 已售罄", product.getName());
+        }
+
+        // 创建订单
+        Order order = Order.forCreate(user, product.getPrice());
+        if (orderMapper.insert(order) <= 0) {
+            return Either.error("订单创建失败");
+        }
+
+        // 删除库存 建立订单明细
+        product.setStock(product.getStock() - 1);
+        product.setSales(product.getSales() + 1);
+        if (!productService.updateProduct(product)) {
+            // 删除失败
+            return Either.error("商品 %s 更新失败", product.getName());
+        }
+        OrderItem item = OrderItem.forCreate(order, product, 1, product.getPrice());
+        if (orderItemMapper.batchInsert(List.of(item)) <= 0) {
+            return Either.error("订单明细更新失败");
+        }
         return Either.of(order);
     }
 

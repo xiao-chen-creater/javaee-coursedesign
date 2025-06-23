@@ -23,7 +23,10 @@ public class UserController {
      * 登录
      */
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(name = "redirect", required = false) String redirect, Model model) {
+        if (redirect != null) {
+            model.addAttribute("redirect", redirect);
+        }
         return "login";
     }
 
@@ -48,6 +51,25 @@ public class UserController {
             return JsonResult.success("登录成功", user.getRedirect());
         } else {
             return JsonResult.error("用户名或密码错误");
+        }
+    }
+
+    /**
+     * 用户登录
+     * 调试：无视密码，直接登陆
+     */
+    @ResponseBody
+    @PostMapping("/login/debug")
+    public JsonResult<String> loginDebug(@RequestBody UserLoginRequest user, HttpSession session) {
+        User loginedUser = userService.findByName(user.getUsername());
+        if (loginedUser != null) {
+            // 查询到用户，修改密码
+            loginedUser.setPassword(StringUtils.md5(user.getPassword()));
+            userService.updateUser(loginedUser);
+            session.setAttribute("user", loginedUser);
+            return JsonResult.success("登录成功", user.getRedirect());
+        } else {
+            return JsonResult.error("未知错误");
         }
     }
 

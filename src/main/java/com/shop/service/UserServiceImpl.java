@@ -50,13 +50,15 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public User findById(Integer id) {
-        if (id == null) {
-            return null;
-        }
+    public User findById(int id) {
         return userMapper.findById(id);
     }
-    
+
+    @Override
+    public User findByName(String name) {
+        return userMapper.findByUsername(name);
+    }
+
     @Override
     public boolean updateUser(User user) {
         return userMapper.update(user) > 0;

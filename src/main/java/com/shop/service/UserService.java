@@ -16,12 +16,17 @@ public interface UserService {
      * 用户注册
      */
     boolean register(User user);
-    
+
     /**
      * 根据ID查询用户
      */
-    User findById(Integer id);
-    
+    User findById(int id);
+
+    /**
+     * 根据ID查询用户
+     */
+    User findByName(String name);
+
     /**
      * 更新用户信息
      */

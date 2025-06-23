@@ -76,6 +76,20 @@ async function login(username, password, redirect = '/') {
 }
 
 /**
+ * 忘记密码
+ * （直接修改密码，仅用于测试）
+ *
+ * @param username {string}
+ * @param password {string}
+ * @param redirect {string}
+ * @returns {Promise<string>}
+ */
+async function forgetPassword(username, password, redirect = '/') {
+    const result = await post(`/user/login/debug`, {username, password, redirect});
+    return result.data;
+}
+
+/**
  * 注册
  *
  * @param username {string}
