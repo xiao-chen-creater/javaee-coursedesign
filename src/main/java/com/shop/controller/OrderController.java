@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Random;
 
@@ -130,11 +131,18 @@ public class OrderController {
             return "redirect:/user/login?redirect=/order/create/" + productId;
         }
 
+        if (!StringUtils.isPhone(user.getPhone())) {
+            return "redirect:/error?message=" + URLEncoder.encode("请先设置手机号");
+        }
+
+        if (StringUtils.isEmpty(user.getAddress())) {
+            return "redirect:/error?message=" + URLEncoder.encode("请先设置地址");
+        }
+
         // 创建订单
         Either<Order> orderResult = orderService.createOrderFromProduct(user, productId);
         if (!orderResult.isSuccess()) {
-            model.addAttribute("message", orderResult.error());
-            return "redirect:/error";
+            return "redirect:/error?message=" + URLEncoder.encode(orderResult.error());
         }
 
         return "redirect:/order/detail/" + orderResult.result().getId();
@@ -144,7 +152,6 @@ public class OrderController {
      * 模拟支付
      */
     private JsonResult<Order> simulateOrderPayment(Order order) {
-        // 模拟支付
         try {
             Thread.sleep(1000 + random.nextInt(2000));
         } catch (InterruptedException e) {
