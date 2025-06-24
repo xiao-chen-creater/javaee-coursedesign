@@ -153,10 +153,6 @@ public class UserController {
             return JsonResult.error("邮箱格式错误");
         }
 
-        if (request.getEmail() != null && userService.isEmailExists(request.getEmail())) {
-            return JsonResult.error("邮箱已存在");
-        }
-
         if (request.getPhone() != null && !StringUtils.isPhone(request.getPhone())) {
             return JsonResult.error("手机号码格式错误");
         }

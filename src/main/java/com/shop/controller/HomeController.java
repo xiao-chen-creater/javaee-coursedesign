@@ -90,4 +90,9 @@ public class HomeController {
 
         return "product-detail";
     }
+
+    @RequestMapping("/error")
+    public String error() {
+    	return "error";
+    }
 }
